@@ -3,12 +3,25 @@
 }
 
 .row {
+    width: 100%;
     display: flex;
-    justify-content: baseline
+    flex-direction: column;
+    justify-content: center;
+}
+
+.row1 {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.add-link {
+    margin: 0 auto;
 }
 
 .col-6 {
-    width: 50%;
+    width: 100%;
+    margin: 10px auto;
     border: 1px solid black;
     padding: 20px 10px;
     display: flex;

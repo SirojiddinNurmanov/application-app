@@ -14,6 +14,7 @@ import Nav from "../components/nav"
 import Form from "../components/form"
 import { requestGraphql, requestLink } from "../../utils";
 import { getAllLinks, sendLink, upvote } from "../../helpers";
+import Link from "next/dist/client/link";
 
 export default function Index() {
   const [user, setUser] = useState({});
@@ -28,7 +29,6 @@ export default function Index() {
   useEffect(() => {
     const item = localStorage.getItem("token")
     setToken(item)
-    router.push("/signup")
   }, [])
 
   const onSubmitLink = () => requestLink(sendLink({ url, description }), token)
@@ -52,7 +52,23 @@ export default function Index() {
 
 
   return (
+
     <div className="container">
+      <div className="row1">
+        <Heading as="h1" >  <img style={{ width: "40px" }} src='/static/img/favicon.png' sx={{ boxShadow: 3 }}></img></Heading>
+        <div>
+          <Link href="/login">
+            <Button variant="link" m="0px 20px">
+              Login
+            </Button>
+          </Link>
+          <Link href="/signup">
+            <Button variant="solid" backgroundColor="brand.blue" color="white">
+              Sign up
+            </Button>
+          </Link>
+        </div>
+      </div>
       <div className="row">
         <div className="col-6">
           <div className="button-area">
@@ -97,7 +113,7 @@ export default function Index() {
           </div>
         </div>
         <div className="col-6">
-          <div>
+          <div className="add-link">
             <Box border="2px solid" w="lg" borderColor="brand.blue" rounded={12} p={8}>
               <Stack spacing={4} mt={8}>
                 <h3>Post a new link</h3>

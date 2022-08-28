@@ -27,8 +27,9 @@ export default function Login() {
   const onSubmitLogin = () => requestGraphql(Loginin({ email: email, password: password }))
     .then((data) => {
       console.log("data", data)
-      router.push("/")
+
       localStorage.setItem("token", data.data.login.token)
+      router.push("/")
     })
 
   return (
