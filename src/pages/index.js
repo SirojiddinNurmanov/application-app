@@ -1,56 +1,138 @@
-import { Box, Spinner, Flex, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  Stack,
+  useToast,
+} from "@chakra-ui/react";
 import Router, { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { fireAuth } from "../service/firebase";
 import Nav from "../components/nav"
 import Form from "../components/form"
+import { requestGraphql, requestLink } from "../../utils";
+import { getAllLinks, sendLink, upvote } from "../../helpers";
 
 export default function Index() {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-
-
-  // const router = useRouter();
-
+  const [links, setLinks] = useState([])
+  const [totalLinks, setTotalLinks] = useState(0)
+  const [url, setUrl] = useState("")
+  const [description, setDescription] = useState("")
+  const [token, setToken] = useState("")
+  const [number, setNumber] = useState(-1)
+  const router = useRouter()
   useEffect(() => {
-    fireAuth.onAuthStateChanged((user) => {
-      if (user) {
-        console.log(user)
-        console.log("user found");
-        setUser(user);
-        setLoading(false);
-      } else {
-        console.log(user)
-        console.log("no user");
-        setUser(null);
-        // setLoading(false);
-        Router.push('/login')
-      }
-    });
-  }, []);
+    const item = localStorage.getItem("token")
+    setToken(item)
+    router.push("/signup")
+  }, [])
 
-  const onLogout = () => {
-    fireAuth.signOut();
-  };
+  const onSubmitLink = () => requestLink(sendLink({ url, description }), token)
+    .then((data) => {
+      console.log(data)
+      console.log("send link")
+    })
 
-  if (loading) {
-    return (
-      <Box>
-        <Flex w="full" h="full" minH="100vh" align="center" justify="center">
-          <Spinner color="brand.blue" />
-        </Flex>
-      </Box>
-    )
-  }
-  else {
-    return (
-      <Box h="100vh">
-        <Nav user={user} onLogout={onLogout}></Nav>
-        <Flex minH={"100vh"} py={10} justifyContent={"center"} alignItems={"center"}>
-          <Form></Form>
-        </Flex>
-      </Box >
-    );
-  }
+  const getLinks = () => requestGraphql(getAllLinks())
+    .then((data) => {
+      console.log(data)
+      setLinks(data.data.feed.links)
+      setTotalLinks(data.data.feed.count)
+    })
+  const upvoteLinks = (id) => requestLink(upvote({ id }), token)
+    .then((data) => {
+      console.log(id)
+      console.log("upvote", data)
+
+    })
+
+
+  return (
+    <div className="container">
+      <div className="row">
+        <div className="col-6">
+          <div className="button-area">
+            <button
+              onClick={getLinks}
+            >Show all links</button>
+            <button
+              onClick={() => setLinks({})}
+            >Close</button>
+          </div>
+
+          <h5>{`Total links:  ${totalLinks}`}</h5>
+          <div className="link-area">
+            {
+              links && links.length > 0 && links.map(({ id, description, postedBy, votes }) => (
+                <div className="link" key={id}>
+                  <div className="link-container">
+                    <span>{`${id}`}</span>
+                    <span>{`${description}`}</span>
+                  </div>
+                  <div className="link-aut">
+                    <img src="/static/img/arrow-upward.png" onClick={() => upvoteLinks(id)} />
+                    <div onClick={() => setNumber(id)} className="link-aut-2">
+                      <span className="upvote-user">S</span>
+                      <span className="upvote-user">N</span>
+                      <span className="upvote-user">F</span>
+                      <span className="upvote-users"> {votes.length > 0 ? `...${votes.length} more upvotes` : "...no votes"}</span>
+                    </div>
+
+                  </div>
+                  <div className={number === id ? "upvote-desc active" : "upvote-desc"}>
+                    <p>{`Users who upvoted: ${description}`}</p>
+                    {votes.length > 0 && votes.map(({ id, user }) => (
+                      <div key={id} className="user-vote">{user.name}</div>
+                    ))}
+                  </div>
+                </div>
+              )
+
+              )
+            }
+          </div>
+        </div>
+        <div className="col-6">
+          <div>
+            <Box border="2px solid" w="lg" borderColor="brand.blue" rounded={12} p={8}>
+              <Stack spacing={4} mt={8}>
+                <h3>Post a new link</h3>
+                <Input
+                  value={url}
+                  onChange={(event) => setUrl(event.target.value)}
+                  placeholder="url"
+                  isRequired
+                  type="text"
+                />
+                <Input
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="description"
+                  isRequired
+                  type="text"
+                />
+                <Button
+                  type="submit"
+                  w="full"
+                  variant="solid"
+                  backgroundColor="brand.blue"
+                  color="white"
+                  onClick={onSubmitLink}
+                >
+                  Continue
+                </Button>
+
+              </Stack>
+            </Box>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
 
 }
